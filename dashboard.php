@@ -7,7 +7,7 @@ if (!isset($_SESSION['loggedin'])) {
 
 $uploadsDir = 'files/';
 $uploadedFiles = array_diff(scandir($uploadsDir), array('.', '..')); // Get all files
-$baseUrl = "https://upload.finafid.com/files/";
+$baseUrl = "https://files.finafid.org/files/";
 
 // Get current timestamp with milliseconds
 $currentTimestamp = microtime(true);
