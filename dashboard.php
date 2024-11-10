@@ -50,7 +50,7 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Dashboard Image</title>
     <link rel="stylesheet" href="style.css">
     <script>
         function copyUrl(url) {
