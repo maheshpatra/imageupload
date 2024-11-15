@@ -13,9 +13,13 @@ if (!is_dir($invoiceDir)) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     $file = $_FILES['file'];
-    $fileName = preg_replace('/\s+/', '_', basename($file['name'])); // Sanitize filename
+    
+    // Generate a unique name using date and time
+    $timestamp = date('Ymd_His'); // Format: YYYYMMDD_HHMMSS
+    $uniqueName = $timestamp . '_' . uniqid() . '.pdf';
+
     $fileTmpName = $file['tmp_name'];
-    $filePath = $invoiceDir . $fileName;
+    $filePath = $invoiceDir . $uniqueName;
 
     // Ensure the file is a PDF
     $fileType = mime_content_type($fileTmpName);
@@ -27,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
 
     // Move the uploaded file
     if (move_uploaded_file($fileTmpName, $filePath)) {
-        $fileUrl = "https://files.finafid.org/invoice/uploads/" . $fileName;
+        $fileUrl = "https://files.finafid.org/invoice/uploads/" . $uniqueName;
         echo json_encode(['status' => 'success', 'url' => $fileUrl]);
     } else {
         http_response_code(500);
@@ -37,4 +41,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => 'No file uploaded or invalid request.']);
 }
+
 ?>
