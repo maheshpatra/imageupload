@@ -12,7 +12,7 @@ if (!is_dir($invoiceDir)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
-    $file = $_FILES['file'];
+    $file = $_FILES['ifile'];
     $fileName = preg_replace('/\s+/', '_', basename($file['name'])); // Sanitize filename
     $fileTmpName = $file['tmp_name'];
     $filePath = $invoiceDir . $fileName;
