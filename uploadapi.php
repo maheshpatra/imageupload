@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['files'])) {
             $uploadResults[] = [
                 'file' => $fileName,
                 'status' => 'success',
-                'url' => 'http://yourdomain.com/uploads/' . $newFileName // Update with actual domain
+                'url' => 'https://files.finafid.org/uploads/' . $newFileName // Update with actual domain
             ];
         } else {
             $uploadResults[] = [
