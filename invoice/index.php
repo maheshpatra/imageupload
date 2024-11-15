@@ -6,7 +6,7 @@ require_once __DIR__ . '/../validation.php';
 validateApiKey();
 
 // Directory for uploaded invoices
-$invoiceDir = __DIR__ .'/uploads/';
+$invoiceDir = __DIR__ . '/uploads/';
 if (!is_dir($invoiceDir)) {
     mkdir($invoiceDir, 0777, true);
 }
@@ -17,6 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     $fileTmpName = $file['tmp_name'];
     $filePath = $invoiceDir . $fileName;
 
+    // Ensure the file is a PDF
+    $fileType = mime_content_type($fileTmpName);
+    if ($fileType !== 'application/pdf') {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Only PDF files are allowed.']);
+        exit;
+    }
+
+    // Move the uploaded file
     if (move_uploaded_file($fileTmpName, $filePath)) {
         $fileUrl = "https://files.finafid.org/invoice/uploads/" . $fileName;
         echo json_encode(['status' => 'success', 'url' => $fileUrl]);
