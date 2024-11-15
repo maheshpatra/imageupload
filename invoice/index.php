@@ -6,7 +6,7 @@ require_once __DIR__ . '/../validation.php';
 validateApiKey();
 
 // Directory for uploaded invoices
-$invoiceDir = __DIR__ .'/uploads';
+$invoiceDir = __DIR__ .'/uploads/';
 if (!is_dir($invoiceDir)) {
     mkdir($invoiceDir, 0777, true);
 }
