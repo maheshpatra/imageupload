@@ -10,33 +10,43 @@ if (!is_dir($uploadDir)) {
 
 $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
-    $file = $_FILES['file'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_FILES['images'])) {
+    $responses = [];
 
-    // Debugging logs
-    error_log("Uploaded file details: " . print_r($file, true));
+    foreach ($_FILES['images']['name'] as $index => $originalName) {
+        $fileTmpName = $_FILES['images']['tmp_name'][$index];
+        $fileType = $_FILES['images']['type'][$index];
+        $fileSize = $_FILES['images']['size'][$index];
+        $fileError = $_FILES['images']['error'][$index];
 
-    if (!in_array($file['type'], $allowedMimeTypes)) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Only image files (JPG, PNG, GIF) are allowed.']);
+        // Skip files with errors
+        if ($fileError !== UPLOAD_ERR_OK) {
+            $responses[] = ['status' => 'error', 'message' => 'File upload error.'];
+            continue;
+        }
+
+        // Validate MIME type
+        if (!in_array($fileType, $allowedMimeTypes)) {
+            $responses[] = ['status' => 'error', 'message' => 'Invalid file type.'];
+            continue;
+        }
+
+        // Process file upload
+        $timestamp = date("YmdHis");
+        $fileName = $timestamp . '_' . preg_replace('/\s+/', '_', basename($originalName));
+        $filePath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($fileTmpName, $filePath)) {
+            $fileUrl = "https://files.finafid.org/uploads/" . $fileName;
+            $responses[] = ['status' => 'success', 'url' => $fileUrl];
+        } else {
+            $responses[] = ['status' => 'error', 'message' => 'Failed to upload file.'];
+        }
     }
 
-    print_r($timestamp = date("YmdHis"));
-    $fileName = $timestamp . '_' . preg_replace('/\s+/', '_', basename($file['name']));
-    $fileTmpName = $file['tmp_name'];
-    $filePath = $uploadDir . $fileName;
-
-    if (move_uploaded_file($fileTmpName, $filePath)) {
-        $fileUrl = "https://files.finafid.org/uploads/" . $fileName;
-        echo json_encode(['status' => 'success', 'url' => $fileUrl]);
-    } else {
-        error_log("Failed to move uploaded file.");
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to upload image.']);
-    }
+    echo json_encode($responses);
 } else {
-    error_log("No file uploaded or invalid request.");
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'No file uploaded or invalid request.']);
+    echo json_encode(['status' => 'error', 'message' => 'No files uploaded or invalid request.']);
 }
 ?>
