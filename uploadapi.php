@@ -1,9 +1,9 @@
 <?php
 // Include validation logic
-require_once __DIR__ . '/validation.php';
+// require_once __DIR__ . '/validation.php';
 
-// Validate API key before proceeding
-validateApiKey();
+// // Validate API key before proceeding
+// validateApiKey();
 
 // Directory Setup for File Uploads
 $uploadDir = __DIR__ . '/uploads/';
