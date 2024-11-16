@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
         exit;
     }
 
-    $timestamp = date("YmdHis");
+    print_r($timestamp = date("YmdHis"));
     $fileName = $timestamp . '_' . preg_replace('/\s+/', '_', basename($file['name']));
     $fileTmpName = $file['tmp_name'];
     $filePath = $uploadDir . $fileName;
