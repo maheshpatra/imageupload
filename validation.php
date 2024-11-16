@@ -30,7 +30,7 @@ function getIncomingApiKey() {
     }
     return $_SERVER['HTTP_X_API_KEY'] ?? null; // Fallback
 }
-
+ 
 // Function to validate API key and respond if invalid
 function validateApiKey() {
     $incomingApiKey = getIncomingApiKey();
@@ -42,5 +42,6 @@ function validateApiKey() {
         echo json_encode(['status' => 'error', 'message' => 'Unauthorized','key'=> $storedHashedKey]);
         exit;
     }
+    
 }
 ?>
