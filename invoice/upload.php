@@ -2,10 +2,7 @@
 // Include validation logic
 require_once __DIR__ . '/../validation.php';
 
-// Validate API key before proceeding
 validateApiKey();
-
-// Directory for uploaded invoices
 $invoiceDir = __DIR__ . '/uploads/';
 if (!is_dir($invoiceDir)) {
     mkdir($invoiceDir, 0777, true);
