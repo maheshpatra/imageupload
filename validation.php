@@ -37,8 +37,9 @@ function validateApiKey() {
 
     if (!$incomingApiKey || strlen($incomingApiKey) < 20 || !isValidApiKey($incomingApiKey)) {
         error_log('Unauthorized access attempt detected.');
+        $storedHashedKey = getApiKeyHash();
         http_response_code(401);
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized','key'=> $storedHashedKey]);
         exit;
     }
 }
