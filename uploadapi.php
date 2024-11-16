@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     if (!in_array($file['type'], $allowedMimeTypes)) {
         http_response_code(400);
         echo json_encode(['status' => 'error', 'message' => 'Only image files (JPG, PNG, GIF) are allowed.']);
-        exit;
     }
 
     print_r($timestamp = date("YmdHis"));
