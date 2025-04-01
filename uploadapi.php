@@ -5,7 +5,7 @@ header("Access-Control-Allow-Origin: http://127.0.0.1:3000"); // Adjust the URL 
 
 
 
-validateApiKey();
+// validateApiKey();
 
 $uploadDir = __DIR__ . '/uploads/';
 if (!is_dir($uploadDir)) {
