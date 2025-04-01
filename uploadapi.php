@@ -1,5 +1,14 @@
 <?php
 require_once __DIR__ . '/validation.php';
+header("Access-Control-Allow-Origin: http://127.0.0.1:3000"); // Adjust the URL if needed
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // If the request is an OPTIONS request (pre-flight), respond with 200 status
+    http_response_code(200);
+    exit();
+}
 
 validateApiKey();
 
