@@ -25,10 +25,14 @@ usort($uploadedFiles, function($a, $b) use ($currentTimestamp) {
     $timestampB = extractTimestamp($b);
 
     // Convert timestamps to seconds with microseconds
-    $timestampA = strtotime($timestampA) + (float)substr($timestampA, 15) / 1000;
-    $timestampB = strtotime($timestampB) + (float)substr($timestampB, 15) / 1000;
+    // Defensive parse for microseconds after 14 chars, fallback 0 if missing
+    $microA = (float)(strlen($timestampA) > 14 ? substr($timestampA, 14) : 0);
+    $microB = (float)(strlen($timestampB) > 14 ? substr($timestampB, 14) : 0);
 
-    return ($timestampB - $currentTimestamp) <=> ($timestampA - $currentTimestamp);
+    $timeA = strtotime($timestampA) + $microA / 1000;
+    $timeB = strtotime($timestampB) + $microB / 1000;
+
+    return ($timeB - $currentTimestamp) <=> ($timeA - $currentTimestamp);
 });
 
 // Pagination settings
@@ -48,10 +52,10 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard Image</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script>
         function copyUrl(url) {
             navigator.clipboard.writeText(url).then(() => {
@@ -83,6 +87,109 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
             }
         }
     </script>
+    <style>
+        /* Simple styles for pagination and file grid */
+        .pagination {
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+        }
+        .pagination-link, .pagination-ellipsis {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-right: 4px;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            color: #333;
+            background-color: #f0f0f0;
+        }
+        .pagination-link:hover {
+            background-color: #ddd;
+        }
+        .pagination-link.active {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+            pointer-events: none;
+            cursor: default;
+        }
+        .pagination-ellipsis {
+            cursor: default;
+            color: #888;
+            background-color: transparent;
+            padding: 6px 10px;
+        }
+        .uploads-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .file-item {
+            width: 150px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .thumbnail {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        .file-placeholder {
+            font-size: 14px;
+            color: #555;
+            display: block;
+            padding: 40px 0;
+            background-color: #efefef;
+            border-radius: 4px;
+        }
+        /* Popup styles */
+        .upload-status-popup {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .upload-status-popup.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .upload-status-popup.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        /* Loading indicator */
+        .loading-indicator {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            font-family: Arial, sans-serif;
+        }
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <!-- Success/Error Popup -->
@@ -90,6 +197,7 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
         <p id="popup-message"></p>
     </div>
 
+    <!-- Loading Indicator -->
     <div id="loading-indicator" class="loading-indicator">
         <div class="spinner"></div>
         <p>Uploading...</p>
@@ -114,9 +222,9 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
                     <div class="file-item">
                         <a href="<?php echo $uploadsDir . $file; ?>" target="_blank">
                             <?php if (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $file)): ?>
-                                <img src="<?php echo $uploadsDir . $file; ?>" alt="<?php echo $file; ?>" class="thumbnail">
+                                <img src="<?php echo $uploadsDir . $file; ?>" alt="<?php echo htmlspecialchars($file); ?>" class="thumbnail" />
                             <?php else: ?>
-                                <span class="file-placeholder"><?php echo $file; ?></span>
+                                <span class="file-placeholder"><?php echo htmlspecialchars($file); ?></span>
                             <?php endif; ?>
                         </a>
                         <button onclick="copyUrl('<?php echo $baseUrl . urlencode($file); ?>')">Copy URL</button>
@@ -129,10 +237,49 @@ $uploadStatus = isset($_GET['status']) ? $_GET['status'] : '';
                 <?php if ($currentPage > 1): ?>
                     <a href="?page=<?php echo $currentPage - 1; ?>" class="pagination-link">Previous</a>
                 <?php endif; ?>
-                
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <a href="?page=<?php echo $i; ?>" class="pagination-link <?php echo $i === $currentPage ? 'active' : ''; ?>"><?php echo $i; ?></a>
-                <?php endfor; ?>
+
+                <?php
+                function getCompactPages($current, $total) {
+                    $pages = [];
+
+                    if ($total <= 7) {
+                        for ($i = 1; $i <= $total; $i++) {
+                            $pages[] = $i;
+                        }
+                    } else {
+                        $pages[] = 1;
+
+                        if ($current > 4) {
+                            $pages[] = '...';
+                        }
+
+                        $start = max(2, $current - 2);
+                        $end = min($total - 1, $current + 2);
+
+                        for ($i = $start; $i <= $end; $i++) {
+                            $pages[] = $i;
+                        }
+
+                        if ($current < $total - 3) {
+                            $pages[] = '...';
+                        }
+
+                        $pages[] = $total;
+                    }
+
+                    return $pages;
+                }
+
+                $compactPages = getCompactPages($currentPage, $totalPages);
+
+                foreach ($compactPages as $page):
+                    if ($page === '...'): ?>
+                        <span class="pagination-ellipsis">...</span>
+                    <?php elseif ($page == $currentPage): ?>
+                        <span class="pagination-link active"><?php echo $page; ?></span>
+                    <?php else: ?>
+                        <a href="?page=<?php echo $page; ?>" class="pagination-link"><?php echo $page; ?></a>
+                <?php endif; endforeach; ?>
 
                 <?php if ($currentPage < $totalPages): ?>
                     <a href="?page=<?php echo $currentPage + 1; ?>" class="pagination-link">Next</a>
